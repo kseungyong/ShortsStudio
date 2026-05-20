@@ -3,15 +3,19 @@ import {
 	DEFAULT_WORDS_PER_CAPTION,
 	MIN_CAPTION_DURATION_SECONDS,
 } from "@/transcription/caption-defaults";
+import { postProcessKorean } from "@/transcription/post-process-ko";
+import type { LanguageCode } from "@/transcription/languages";
 
 export function buildCaptionChunks({
 	segments,
 	wordsPerChunk = DEFAULT_WORDS_PER_CAPTION,
 	minDuration = MIN_CAPTION_DURATION_SECONDS,
+	language,
 }: {
 	segments: TranscriptionSegment[];
 	wordsPerChunk?: number;
 	minDuration?: number;
+	language?: LanguageCode;
 }): CaptionChunk[] {
 	const captions: CaptionChunk[] = [];
 	let globalEndTime = 0;
@@ -45,5 +49,11 @@ export function buildCaptionChunks({
 		}
 	}
 
+	if (language === "ko") {
+		return captions.map((c) => ({
+			...c,
+			text: postProcessKorean({ text: c.text }),
+		}));
+	}
 	return captions;
 }
