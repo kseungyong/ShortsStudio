@@ -1,44 +1,35 @@
-<table width="100%">
-  <tr>
-    <td align="left" width="120">
-      <img src="https://assets.opencut.app/branding/symbol.svg" alt="OpenCut Logo" width="100" />
-    </td>
-    <td align="right">
-      <h1>OpenCut</h1>
-      <h3 style="margin-top: -10px;">A free and open source video editor for web, desktop, and mobile.</h3>
-    </td>
-  </tr>
-</table>
+# ShortsStudio
 
-[![Discord](https://img.shields.io/discord/1386309140057690133?label=Discord&logo=discord&logoColor=fff&color=5865F2&style=flat)](https://discord.gg/zmR9N35cjK)
-[![X](https://img.shields.io/badge/follow-%40opencutapp-000?logo=x&logoColor=fff&style=flat)](https://x.com/opencutapp)
+A YouTube Shorts-focused video editor for web, built on top of OpenCut.
+
+> **Forked from [OpenCut](https://github.com/OpenCut-app/OpenCut)** — the free and open-source browser video editor. ShortsStudio is a private fork with a Shorts-first feature focus and our own brand applied. The upstream OpenCut codebase, architecture, and MIT license are preserved.
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat)](LICENSE)
 
-## Status
+## What is ShortsStudio?
 
-**OpenCut is being rewritten from the ground up.** What's coming:
+ShortsStudio is a browser-based video editor optimized for creating YouTube Shorts (9:16, vertical video). It builds on the OpenCut engine and adds Shorts-specific presets, aspect ratios, caption styles, and export workflows.
 
-- An Editor API
-- First-class third party plugins (made possible by a plugin-first architecture)
-- Desktop, mobile, and browser from one codebase (Rust core)
-- MCP server (for AI agents)
-- Headless mode (automation, batch rendering)
-- A scripting tab directly in the editor
+## Development
 
-You can still find the previous version at [opencut-app/opencut-classic](https://github.com/opencut-app/opencut-classic), which is the one to reach for today. [opencut.app](https://opencut.app) still runs the classic version; the rewrite will live at [new.opencut.app](https://new.opencut.app) until it's ready to take over.
+This project uses [Bun](https://bun.sh) as its package manager and [Turbo](https://turbo.build) for monorepo task orchestration.
 
-## Sponsors
+```bash
+bun install
+bun run dev:web        # start the web app at localhost:3000
+bun run build:web      # production build
+bun test               # run all tests
+```
 
-OpenCut is supported by companies that believe in open source creator tools.
+## Architecture
 
-- [**fal.ai**](https://fal.ai?utm_source=github-opencut&utm_campaign=oss): Generative image, video, and audio models all in one place.
+See [AGENTS.md](AGENTS.md) for a full architecture walkthrough of the underlying OpenCut engine this fork is built on.
 
-Want your logo here? Reach out at [sponsor@opencut.app](mailto:sponsor@opencut.app).
+## Attribution
 
-## Contributing
-
-We're not set up to take outside contributions yet while the architecture is being designed. If you want to follow along, ask questions, or just hang out, [join the Discord](https://discord.gg/zmR9N35cjK) or [open an issue](https://github.com/opencut-app/opencut/issues).
+ShortsStudio is a fork of [OpenCut](https://github.com/OpenCut-app/OpenCut) by the OpenCut contributors.
+The original work is MIT-licensed; see [LICENSE](LICENSE) for details.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — OpenCut contributors hold copyright on the original code; ShortsStudio additions are also released under MIT.

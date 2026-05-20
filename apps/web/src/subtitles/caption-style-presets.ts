@@ -28,7 +28,7 @@ export const CAPTION_STYLE_PRESETS: readonly TCaptionStylePreset[] = [
 	{
 		id: "default",
 		label: "Default",
-		description: "OpenCut's default caption style (no overrides)",
+		description: "ShortsStudio's default caption style (no overrides)",
 		style: {},
 	},
 	{
