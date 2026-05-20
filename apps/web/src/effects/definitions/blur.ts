@@ -5,7 +5,11 @@ export const GAUSSIAN_BLUR_SHADER = "gaussian-blur";
 const MAX_SINGLE_PASS_SIGMA = 10;
 const MAX_STEP = 4;
 const MAX_EFFECTIVE_SIGMA = MAX_SINGLE_PASS_SIGMA * MAX_STEP;
-const MAX_ITERATIONS = 8;
+// Cap iterations at 4 (was 8) — each iteration emits 2 GPU passes (H + V),
+// so 4 iterations = 8 passes per frame max. Higher counts can stall playback
+// on lower-end GPUs (issue #776). Quality impact: negligible at intensity ≤ 50
+// (iterations cap at 1 anyway); slight softness reduction at intensity 80+.
+const MAX_ITERATIONS = 4;
 
 export function buildGaussianBlurPasses({
 	sigmaX,
