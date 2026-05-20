@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	Dialog,
 	DialogContent,
@@ -22,6 +29,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import {
+	BGM_LIBRARY,
+	BGM_MOODS,
+	formatBgmDuration,
+	type TBgmTrack,
+} from "@/sounds/bgm-library";
 import { useSoundSearch } from "@/sounds/use-sound-search";
 import { useSoundsStore } from "@/sounds/sounds-store";
 import type { SavedSound, SoundEffect } from "@/sounds/types";
@@ -42,6 +55,7 @@ export function SoundsView() {
 				<div className="px-3 pt-4 pb-0">
 					<TabsList>
 						<TabsTrigger value="sound-effects">Sound effects</TabsTrigger>
+						<TabsTrigger value="bgm">BGM</TabsTrigger>
 						<TabsTrigger value="saved">Saved</TabsTrigger>
 					</TabsList>
 				</div>
@@ -51,6 +65,12 @@ export function SoundsView() {
 					className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
 				>
 					<SoundEffectsView />
+				</TabsContent>
+				<TabsContent
+					value="bgm"
+					className="mt-0 flex min-h-0 flex-1 flex-col p-5 pt-0"
+				>
+					<BgmLibraryView />
 				</TabsContent>
 				<TabsContent
 					value="saved"
@@ -299,6 +319,119 @@ function SoundEffectsView() {
 					</div>
 				</ScrollArea>
 			</div>
+		</div>
+	);
+}
+
+const BGM_MOOD_FILTERS = ["all", ...BGM_MOODS] as const;
+type BgmMoodFilter = (typeof BGM_MOOD_FILTERS)[number];
+
+function BgmLibraryView() {
+	const [moodFilter, setMoodFilter] = useState<BgmMoodFilter>("all");
+
+	const tracks = useMemo(() => {
+		if (moodFilter === "all") return [...BGM_LIBRARY];
+		return BGM_LIBRARY.filter((track) => track.mood === moodFilter);
+	}, [moodFilter]);
+
+	const handleAdd = ({ track }: { track: TBgmTrack }) => {
+		if (!track.sourceUrl && !track.downloadUrl) {
+			toast.message("Music CDN not configured yet — coming soon", {
+				description: `Track "${track.title}" will be playable once the BGM CDN is set up.`,
+			});
+			return;
+		}
+		// Reserved for future: hand off to addSoundToTimeline once the
+		// SoundEffect adapter for BGM tracks lands.
+		toast.message("BGM playback integration pending", {
+			description: `"${track.title}" has a source but no editor integration yet.`,
+		});
+	};
+
+	return (
+		<div className="mt-1 flex h-full flex-col gap-4">
+			<div className="flex flex-wrap items-center gap-1.5">
+				{BGM_MOOD_FILTERS.map((mood) => (
+					<Button
+						key={mood}
+						type="button"
+						variant={moodFilter === mood ? "secondary" : "outline"}
+						size="sm"
+						className="capitalize"
+						onClick={() => setMoodFilter(mood)}
+					>
+						{mood}
+					</Button>
+				))}
+			</div>
+
+			<div className="relative h-full overflow-hidden">
+				<ScrollArea className="h-full flex-1">
+					<div className="flex flex-col gap-2 pr-2">
+						{tracks.map((track) => (
+							<BgmTrackRow key={track.id} track={track} onAdd={handleAdd} />
+						))}
+						{tracks.length === 0 && (
+							<div className="text-muted-foreground py-6 text-center text-sm">
+								No tracks for this mood
+							</div>
+						)}
+					</div>
+				</ScrollArea>
+			</div>
+		</div>
+	);
+}
+
+function BgmTrackRow({
+	track,
+	onAdd,
+}: {
+	track: TBgmTrack;
+	onAdd: ({ track }: { track: TBgmTrack }) => void;
+}) {
+	const isPlayable = !!track.sourceUrl;
+	const addLabel = isPlayable
+		? "Add to timeline"
+		: "CDN not configured yet";
+
+	return (
+		<div className="bg-accent/40 group flex items-center gap-3 rounded-md border p-2">
+			<div className="bg-accent flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+				<HugeiconsIcon icon={PlayIcon} className="size-5 opacity-60" />
+			</div>
+			<div className="min-w-0 flex-1 overflow-hidden">
+				<p className="truncate text-sm font-medium">{track.title}</p>
+				<div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-xs">
+					<Badge variant="outline" className="capitalize">
+						{track.mood}
+					</Badge>
+					<span>{formatBgmDuration({ seconds: track.durationSeconds })}</span>
+					{track.bpm !== undefined && <span>· {track.bpm} BPM</span>}
+				</div>
+			</div>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						type="button"
+						variant="text"
+						size="icon"
+						className={cn(
+							"text-muted-foreground hover:text-foreground w-auto !opacity-100",
+							!isPlayable && "cursor-pointer opacity-70 hover:text-muted-foreground",
+						)}
+						aria-label={
+							isPlayable
+								? "Add track to timeline"
+								: "Add track to timeline (coming soon — CDN not configured)"
+						}
+						onClick={() => onAdd({ track })}
+					>
+						<HugeiconsIcon icon={PlusSignIcon} />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent>{addLabel}</TooltipContent>
+			</Tooltip>
 		</div>
 	);
 }

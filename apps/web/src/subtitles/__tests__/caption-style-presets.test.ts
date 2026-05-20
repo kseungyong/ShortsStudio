@@ -3,6 +3,7 @@ import {
 	CAPTION_STYLE_PRESETS,
 	CAPTION_STYLE_PRESET_IDS,
 	getCaptionStylePresetById,
+	type TCaptionStylePresetId,
 } from "@/subtitles/caption-style-presets";
 
 describe("CAPTION_STYLE_PRESETS", () => {

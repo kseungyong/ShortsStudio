@@ -231,3 +231,19 @@ export function getBgmTracksByBpmRange({
 		return t.bpm >= min && t.bpm <= max;
 	});
 }
+
+/**
+ * Format a duration in seconds as M:SS (or MM:SS). Negative or NaN
+ * values are clamped to 0. Used by the BGM library track list.
+ */
+export function formatBgmDuration({
+	seconds,
+}: {
+	seconds: number;
+}): string {
+	const clamped =
+		!Number.isFinite(seconds) || seconds < 0 ? 0 : Math.floor(seconds);
+	const minutes = Math.floor(clamped / 60);
+	const remainingSeconds = clamped % 60;
+	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+}

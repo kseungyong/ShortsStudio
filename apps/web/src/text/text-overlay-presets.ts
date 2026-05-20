@@ -208,3 +208,48 @@ export function getTextOverlayPresetById({
 }): TTextOverlayPreset | undefined {
 	return TEXT_OVERLAY_PRESETS.find((p) => p.id === id);
 }
+
+/**
+ * Flatten a TextOverlayStyle into a partial params record matching the
+ * text element's `background.*` dotted key convention. Returned shape is
+ * compatible with `Partial<ParamValues>` for text elements.
+ */
+export function buildTextOverlayPresetParams({
+	style,
+}: {
+	style: TextOverlayStyle;
+}): Record<string, string | number | boolean> {
+	const params: Record<string, string | number | boolean> = {
+		fontWeight: style.fontWeight,
+		fontStyle: style.fontStyle,
+		textAlign: style.textAlign,
+		color: style.color,
+	};
+	if (style.fontFamily !== undefined) params.fontFamily = style.fontFamily;
+	if (style.fontSize !== undefined) params.fontSize = style.fontSize;
+	if (style.textDecoration !== undefined) {
+		params.textDecoration = style.textDecoration;
+	}
+	if (style.letterSpacing !== undefined) {
+		params.letterSpacing = style.letterSpacing;
+	}
+	if (style.lineHeight !== undefined) params.lineHeight = style.lineHeight;
+	if (style.background) {
+		if (style.background.enabled !== undefined) {
+			params["background.enabled"] = style.background.enabled;
+		}
+		if (style.background.color !== undefined) {
+			params["background.color"] = style.background.color;
+		}
+		if (style.background.paddingX !== undefined) {
+			params["background.paddingX"] = style.background.paddingX;
+		}
+		if (style.background.paddingY !== undefined) {
+			params["background.paddingY"] = style.background.paddingY;
+		}
+		if (style.background.cornerRadius !== undefined) {
+			params["background.cornerRadius"] = style.background.cornerRadius;
+		}
+	}
+	return params;
+}

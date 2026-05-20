@@ -3,6 +3,7 @@ import {
 	BGM_LIBRARY,
 	BGM_MOODS,
 	type TBgmMood,
+	formatBgmDuration,
 	getBgmTrackById,
 	getBgmTracksByBpmRange,
 	getBgmTracksByMood,
@@ -111,5 +112,33 @@ describe("getBgmTracksByBpmRange", () => {
 	test("empty range returns empty array", () => {
 		const tracks = getBgmTracksByBpmRange({ min: 500, max: 600 });
 		expect(tracks).toEqual([]);
+	});
+});
+
+describe("formatBgmDuration", () => {
+	test("formats whole seconds as M:SS", () => {
+		expect(formatBgmDuration({ seconds: 0 })).toBe("0:00");
+		expect(formatBgmDuration({ seconds: 5 })).toBe("0:05");
+		expect(formatBgmDuration({ seconds: 59 })).toBe("0:59");
+	});
+
+	test("formats minute boundaries", () => {
+		expect(formatBgmDuration({ seconds: 60 })).toBe("1:00");
+		expect(formatBgmDuration({ seconds: 65 })).toBe("1:05");
+		expect(formatBgmDuration({ seconds: 125 })).toBe("2:05");
+	});
+
+	test("handles longer durations", () => {
+		expect(formatBgmDuration({ seconds: 600 })).toBe("10:00");
+		expect(formatBgmDuration({ seconds: 3599 })).toBe("59:59");
+	});
+
+	test("floors fractional seconds", () => {
+		expect(formatBgmDuration({ seconds: 65.9 })).toBe("1:05");
+	});
+
+	test("clamps negative and NaN to 0:00", () => {
+		expect(formatBgmDuration({ seconds: -5 })).toBe("0:00");
+		expect(formatBgmDuration({ seconds: Number.NaN })).toBe("0:00");
 	});
 });
