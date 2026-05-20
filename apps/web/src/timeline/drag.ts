@@ -15,6 +15,12 @@ export interface MediaDragData extends BaseDragData {
 export interface TextDragData extends BaseDragData {
 	type: "text";
 	content: string;
+	/**
+	 * Optional partial param overrides applied at drop time. Used by text
+	 * overlay presets to seed the new element's style without forcing
+	 * callers to mutate the element after creation.
+	 */
+	params?: Partial<ParamValues>;
 }
 
 export interface StickerDragData extends BaseDragData {

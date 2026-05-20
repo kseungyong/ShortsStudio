@@ -12,6 +12,9 @@ import {
 	clampRetimeRate,
 	canMaintainPitch,
 } from "@/retime/rate";
+import { SPEED_PRESETS } from "@/retime/presets";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/utils/ui";
 import type { AudioElement, VideoElement } from "@/timeline";
 import {
 	Section,
@@ -115,6 +118,31 @@ export function SpeedTab({
 			</SectionHeader>
 			<SectionContent>
 				<SectionFields>
+					<SectionField label="Presets">
+						<div className="flex w-full gap-1">
+							{SPEED_PRESETS.map((preset) => {
+								const isActive = Math.abs(rate - preset.rate) < 1e-6;
+								return (
+									<Button
+										key={preset.id}
+										type="button"
+										variant={isActive ? "secondary" : "outline"}
+										aria-pressed={isActive}
+										size="sm"
+										className={cn("flex-1 px-1.5", isActive && "ring-1")}
+										onClick={() =>
+											commitRetime({
+												rate: preset.rate,
+												maintainPitch: preset.maintainPitch,
+											})
+										}
+									>
+										{preset.label}
+									</Button>
+								);
+							})}
+						</div>
+					</SectionField>
 					<SectionField label="Speed">
 						<NumberField
 							icon={<HugeiconsIcon icon={DashboardSpeed02Icon} />}

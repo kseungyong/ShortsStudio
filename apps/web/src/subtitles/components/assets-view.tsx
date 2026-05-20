@@ -22,6 +22,10 @@ import { transcriptionService } from "@/services/transcription/service";
 import { decodeAudioToFloat32 } from "@/media/audio";
 import { buildCaptionChunks } from "@/transcription/caption";
 import { insertCaptionChunksAsTextTrack } from "@/subtitles/insert";
+import {
+	CAPTION_STYLE_PRESETS,
+	type TCaptionStylePresetId,
+} from "@/subtitles/caption-style-presets";
 import { parseSubtitleFile } from "@/subtitles/parse";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -86,6 +90,8 @@ function processingReducer(
 export function Captions() {
 	const [selectedLanguage, setSelectedLanguage] =
 		useState<TranscriptionLanguage>("auto");
+	const [stylePresetId, setStylePresetId] =
+		useState<TCaptionStylePresetId>("default");
 	const [processing, dispatch] = useReducer(processingReducer, IDLE_STATE);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +119,11 @@ export function Captions() {
 	}: {
 		captions: CaptionChunk[];
 	}): boolean => {
-		const trackId = insertCaptionChunksAsTextTrack({ editor, captions });
+		const trackId = insertCaptionChunksAsTextTrack({
+			editor,
+			captions,
+			stylePresetId,
+		});
 		return trackId !== null;
 	};
 
@@ -237,6 +247,12 @@ export function Captions() {
 		setSelectedLanguage(matchedLanguage.code);
 	};
 
+	const handleStylePresetChange = ({ value }: { value: string }) => {
+		const matched = CAPTION_STYLE_PRESETS.find((p) => p.id === value);
+		if (!matched) return;
+		setStylePresetId(matched.id);
+	};
+
 	const error = processing.status === "idle" ? processing.error : null;
 	const warnings = processing.status === "idle" ? processing.warnings : [];
 
@@ -305,6 +321,23 @@ export function Captions() {
 									{TRANSCRIPTION_LANGUAGES.map((language) => (
 										<SelectItem key={language.code} value={language.code}>
 											{language.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</SectionField>
+						<SectionField label="Style">
+							<Select
+								value={stylePresetId}
+								onValueChange={(value) => handleStylePresetChange({ value })}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder="Select a style" />
+								</SelectTrigger>
+								<SelectContent>
+									{CAPTION_STYLE_PRESETS.map((preset) => (
+										<SelectItem key={preset.id} value={preset.id}>
+											{preset.label}
 										</SelectItem>
 									))}
 								</SelectContent>
