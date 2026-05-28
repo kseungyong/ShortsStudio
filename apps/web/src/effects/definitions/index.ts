@@ -1,8 +1,13 @@
 import { effectsRegistry } from "../registry";
 import { blurEffectDefinition } from "./blur";
+import { sharpenEffectDefinition } from "./sharpen";
 import { vignetteEffectDefinition } from "./vignette";
 
-const defaultEffects = [blurEffectDefinition, vignetteEffectDefinition];
+const defaultEffects = [
+	blurEffectDefinition,
+	vignetteEffectDefinition,
+	sharpenEffectDefinition,
+];
 
 export function registerDefaultEffects(): void {
 	for (const definition of defaultEffects) {
