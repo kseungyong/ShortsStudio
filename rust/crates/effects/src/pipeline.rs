@@ -19,6 +19,10 @@ const SHARPEN_SHADER_SOURCE: &str = include_str!("shaders/sharpen.wgsl");
 const COLOR_GRADE_SHADER_ID: &str = "color-grade";
 const COLOR_GRADE_SHADER_SOURCE: &str = include_str!("shaders/color_grade.wgsl");
 
+const CHROMATIC_ABERRATION_SHADER_ID: &str = "chromatic-aberration";
+const CHROMATIC_ABERRATION_SHADER_SOURCE: &str =
+    include_str!("shaders/chromatic_aberration.wgsl");
+
 pub struct ApplyEffectsOptions<'a> {
     pub source: &'a wgpu::Texture,
     pub width: u32,
@@ -269,11 +273,58 @@ impl EffectPipeline {
                     multiview_mask: None,
                     cache: None,
                 });
+        let chromatic_aberration_shader_module =
+            context
+                .device()
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("effects-chromatic-aberration-shader"),
+                    source: wgpu::ShaderSource::Wgsl(CHROMATIC_ABERRATION_SHADER_SOURCE.into()),
+                });
+        let chromatic_aberration_pipeline =
+            context
+                .device()
+                .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                    label: Some("effects-chromatic-aberration-pipeline"),
+                    layout: Some(&pipeline_layout),
+                    vertex: wgpu::VertexState {
+                        module: &vertex_shader_module,
+                        entry_point: Some("vertex_main"),
+                        buffers: &[wgpu::VertexBufferLayout {
+                            array_stride: std::mem::size_of::<[f32; 2]>() as u64,
+                            step_mode: wgpu::VertexStepMode::Vertex,
+                            attributes: &[wgpu::VertexAttribute {
+                                format: wgpu::VertexFormat::Float32x2,
+                                offset: 0,
+                                shader_location: 0,
+                            }],
+                        }],
+                        compilation_options: wgpu::PipelineCompilationOptions::default(),
+                    },
+                    fragment: Some(wgpu::FragmentState {
+                        module: &chromatic_aberration_shader_module,
+                        entry_point: Some("fragment_main"),
+                        targets: &[Some(wgpu::ColorTargetState {
+                            format: context.texture_format(),
+                            blend: None,
+                            write_mask: wgpu::ColorWrites::ALL,
+                        })],
+                        compilation_options: wgpu::PipelineCompilationOptions::default(),
+                    }),
+                    primitive: wgpu::PrimitiveState::default(),
+                    depth_stencil: None,
+                    multisample: wgpu::MultisampleState::default(),
+                    multiview_mask: None,
+                    cache: None,
+                });
         let pipelines = HashMap::from([
             (GAUSSIAN_BLUR_SHADER_ID.to_string(), gaussian_blur_pipeline),
             (VIGNETTE_SHADER_ID.to_string(), vignette_pipeline),
             (SHARPEN_SHADER_ID.to_string(), sharpen_pipeline),
             (COLOR_GRADE_SHADER_ID.to_string(), color_grade_pipeline),
+            (
+                CHROMATIC_ABERRATION_SHADER_ID.to_string(),
+                chromatic_aberration_pipeline,
+            ),
         ]);
 
         Self {
@@ -500,6 +551,26 @@ fn pack_effect_uniforms(
                 resolution: [width as f32, height as f32],
                 direction: [0.0, 0.0],
                 scalars: [exposure, contrast, saturation, 0.0],
+            })
+        }
+        CHROMATIC_ABERRATION_SHADER_ID => {
+            let amount = read_number_uniform(pass, "u_amount")?;
+            let angle = read_number_uniform(pass, "u_angle")?;
+
+            for uniform in pass.uniforms.keys() {
+                if uniform == "u_amount" || uniform == "u_angle" {
+                    continue;
+                }
+                return Err(EffectsError::UnsupportedUniform {
+                    shader: shader.to_string(),
+                    uniform: uniform.clone(),
+                });
+            }
+
+            Ok(EffectUniformBuffer {
+                resolution: [width as f32, height as f32],
+                direction: [0.0, 0.0],
+                scalars: [amount, angle, 0.0, 0.0],
             })
         }
         _ => Err(EffectsError::UnknownEffectShader {
