@@ -357,7 +357,12 @@ describe("mask snapping", () => {
 		});
 
 		expect(result.params.scale).toBe(2.5);
-		expect(result.activeLines).toEqual([{ type: "vertical", position: 100 }]);
+		// Uniform scale moves both edges symmetrically; right edge at +99.2 and
+		// left edge at -99.2 both snap to canvas-half lines (±100).
+		expect(result.activeLines).toEqual([
+			{ type: "vertical", position: -100 },
+			{ type: "vertical", position: 100 },
+		]);
 	});
 
 	test("snaps text mask movement using intrinsic text bounds", () => {
@@ -495,13 +500,17 @@ describe("custom mask point insertion", () => {
 		});
 
 		expect(nextPoints.map((point) => point.id)).toEqual(["a", "new", "b", "c"]);
+		// de Casteljau split of a zero-tangent cubic at t=0.5 still produces
+		// non-zero in/out handles because the local parameterization of the
+		// preserved curve has velocity at the split point. inY/outY stay 0
+		// because the segment is horizontal.
 		expect(nextPoints[1]).toMatchObject({
 			id: "new",
 			x: 0,
 			y: -0.1,
-			inX: 0,
+			inX: -0.1,
 			inY: 0,
-			outX: 0,
+			outX: 0.1,
 			outY: 0,
 		});
 	});
