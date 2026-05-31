@@ -94,4 +94,45 @@ describe("colorGradeEffectDefinition", () => {
 		expect(uniforms?.u_contrast).toBe(1);
 		expect(uniforms?.u_saturation).toBe(1);
 	});
+
+	test("contrast=0 is a valid degenerate state (entire image collapses to 0.5)", () => {
+		// Boundary case: the shader does (rgb - 0.5) * 0 + 0.5 = 0.5 for every
+		// pixel, producing a flat-gray frame. Uniforms must pass 0 through, not
+		// clamp it away from the boundary.
+		const uniforms = colorGradeEffectDefinition.renderer.passes[0]?.uniforms({
+			effectParams: { exposure: 0, contrast: 0, saturation: 1 },
+			width: 1080,
+			height: 1920,
+		});
+		expect(uniforms?.u_contrast).toBe(0);
+	});
+
+	test("extreme combined params still produce in-range uniforms", () => {
+		// Cross-product smoke test: maxing every axis together must not silently
+		// drop or NaN any uniform. The shader's final clamp catches downstream
+		// overflow; this test guards the TS uniform-packing layer.
+		const uniforms = colorGradeEffectDefinition.renderer.passes[0]?.uniforms({
+			effectParams: { exposure: 2, contrast: 2, saturation: 2 },
+			width: 1080,
+			height: 1920,
+		});
+		expect(uniforms?.u_exposure).toBe(2);
+		expect(uniforms?.u_contrast).toBe(2);
+		expect(uniforms?.u_saturation).toBe(2);
+	});
+
+	test("NaN inputs fall back to neutral defaults", () => {
+		const uniforms = colorGradeEffectDefinition.renderer.passes[0]?.uniforms({
+			effectParams: {
+				exposure: Number.NaN,
+				contrast: Number.NaN,
+				saturation: Number.NaN,
+			},
+			width: 1080,
+			height: 1920,
+		});
+		expect(uniforms?.u_exposure).toBe(0);
+		expect(uniforms?.u_contrast).toBe(1);
+		expect(uniforms?.u_saturation).toBe(1);
+	});
 });

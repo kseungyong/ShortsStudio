@@ -1,33 +1,7 @@
 import type { EffectDefinition } from "@/effects/types";
+import { clamp, readNumber } from "./_utils";
 
 export const COLOR_GRADE_SHADER = "color-grade";
-
-function clamp({
-	value,
-	min,
-	max,
-}: {
-	value: number;
-	min: number;
-	max: number;
-}): number {
-	return Math.min(max, Math.max(min, value));
-}
-
-function readNumber({
-	params,
-	key,
-	fallback,
-}: {
-	params: Record<string, unknown>;
-	key: string;
-	fallback: number;
-}): number {
-	const raw = params[key];
-	if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-	const parsed = Number.parseFloat(String(raw));
-	return Number.isFinite(parsed) ? parsed : fallback;
-}
 
 export const colorGradeEffectDefinition: EffectDefinition = {
 	type: "color-grade",

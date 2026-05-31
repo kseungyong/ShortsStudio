@@ -68,6 +68,33 @@ describe("chromaticAberrationEffectDefinition", () => {
 		expect(uniforms?.u_angle).toBeCloseTo(Math.PI / 2, 5);
 	});
 
+	test("angle converts at additional boundary values", () => {
+		// Multiple samples catch sign errors in the (deg * PI) / 180 conversion
+		// that a single 90° sample would miss.
+		const at = (angle: number) =>
+			chromaticAberrationEffectDefinition.renderer.passes[0]?.uniforms({
+				effectParams: { amount: 0.01, angle },
+				width: 1080,
+				height: 1920,
+			})?.u_angle;
+		expect(at(180)).toBeCloseTo(Math.PI, 5);
+		expect(at(270)).toBeCloseTo((3 * Math.PI) / 2, 5);
+		expect(at(360)).toBeCloseTo(Math.PI * 2, 5);
+	});
+
+	test("angle wraps without clamping (>360 and negative pass through)", () => {
+		// Documented design: angle is not clamped because cos/sin handle any
+		// value. 370° must produce 370 * PI / 180, not snap to 360.
+		const at = (angle: number) =>
+			chromaticAberrationEffectDefinition.renderer.passes[0]?.uniforms({
+				effectParams: { amount: 0.01, angle },
+				width: 1080,
+				height: 1920,
+			})?.u_angle;
+		expect(at(720)).toBeCloseTo((720 * Math.PI) / 180, 5);
+		expect(at(-45)).toBeCloseTo((-45 * Math.PI) / 180, 5);
+	});
+
 	test("missing params fall back to defaults", () => {
 		const uniforms = chromaticAberrationEffectDefinition.renderer.passes[0]?.uniforms({
 			effectParams: {},

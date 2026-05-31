@@ -1,35 +1,9 @@
 import type { EffectDefinition } from "@/effects/types";
+import { clamp, readNumber } from "./_utils";
 
 export const CHROMATIC_ABERRATION_SHADER = "chromatic-aberration";
 
 const MAX_AMOUNT = 0.05; // UV-space offset cap; beyond this looks broken
-
-function clamp({
-	value,
-	min,
-	max,
-}: {
-	value: number;
-	min: number;
-	max: number;
-}): number {
-	return Math.min(max, Math.max(min, value));
-}
-
-function readNumber({
-	params,
-	key,
-	fallback,
-}: {
-	params: Record<string, unknown>;
-	key: string;
-	fallback: number;
-}): number {
-	const raw = params[key];
-	if (typeof raw === "number" && Number.isFinite(raw)) return raw;
-	const parsed = Number.parseFloat(String(raw));
-	return Number.isFinite(parsed) ? parsed : fallback;
-}
 
 export const chromaticAberrationEffectDefinition: EffectDefinition = {
 	type: "chromatic-aberration",
@@ -69,6 +43,10 @@ export const chromaticAberrationEffectDefinition: EffectDefinition = {
 						min: 0,
 						max: MAX_AMOUNT,
 					});
+					// Angle is intentionally not clamped. The UI declares max 360 as a
+					// hint for the slider, but values outside [0, 360] wrap naturally
+					// through cos/sin in the shader (370° = 10°, -45° = 315°). Clamping
+					// would lie about the geometry.
 					const angleDeg = readNumber({
 						params: effectParams,
 						key: "angle",
