@@ -2,6 +2,7 @@ import type { ElementAnimations } from "@/animation/types";
 import type { Effect } from "@/effects/types";
 import type { Mask } from "@/masks/types";
 import type { ParamValues } from "@/params";
+import type { TTransitionSpec } from "@/transitions/types";
 import type { MediaTime } from "@/wasm";
 
 export type ElementRef = {
@@ -122,6 +123,12 @@ export interface VideoElement extends BaseTimelineElement {
 	retime?: RetimeConfig;
 	effects?: Effect[];
 	masks?: Mask[];
+	/**
+	 * Cross-dissolve into the NEXT clip on the same track. The outgoing clip
+	 * (this one) owns the spec. See docs/transitions-architecture.md. MVP:
+	 * single-pair / last-pair exact; middle-of-chain leaves a gap.
+	 */
+	transition?: TTransitionSpec;
 }
 
 export interface ImageElement extends BaseTimelineElement {
@@ -130,6 +137,7 @@ export interface ImageElement extends BaseTimelineElement {
 	hidden?: boolean;
 	effects?: Effect[];
 	masks?: Mask[];
+	transition?: TTransitionSpec;
 }
 
 export interface TextElement extends BaseTimelineElement {
