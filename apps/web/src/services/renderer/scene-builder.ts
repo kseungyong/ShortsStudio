@@ -17,6 +17,7 @@ import {
 	readBlendModeFromParams,
 	readOpacityFromParams,
 } from "@/rendering";
+import { computeTransitionNodeMeta } from "@/transitions/scene-meta";
 
 const PREVIEW_MAX_IMAGE_SIZE = 2048;
 
@@ -46,6 +47,18 @@ function buildTrackNodes({
 	for (const track of tracks) {
 		const elements = getVisibleSortedElements({ track });
 
+		const transitionMeta = computeTransitionNodeMeta({
+			elements: elements.map((e) => ({
+				id: e.id,
+				startTime: e.startTime,
+				duration: e.duration,
+				transition:
+					e.type === "video" || e.type === "image"
+						? e.transition
+						: undefined,
+			})),
+		});
+
 		for (const element of elements) {
 			if (element.type === "effect") {
 				nodes.push(
@@ -66,13 +79,15 @@ function buildTrackNodes({
 				}
 
 				if (element.type === "video" && mediaAsset.type === "video") {
+					const meta = transitionMeta.get(element.id);
 					nodes.push(
 						new VideoNode({
 							mediaId: mediaAsset.id,
 							url: mediaAsset.url,
 							file: mediaAsset.file,
 							duration: element.duration,
-							timeOffset: element.startTime,
+							timeOffset:
+								element.startTime + (meta?.timeOffsetShiftTicks ?? 0),
 							trimStart: element.trimStart,
 							trimEnd: element.trimEnd,
 							retime: element.retime,
@@ -82,15 +97,18 @@ function buildTrackNodes({
 							blendMode: readBlendModeFromParams({ params: element.params }),
 							effects: element.effects ?? [],
 							masks: element.masks ?? [],
+							transition: meta?.transition,
 						}),
 					);
 				}
 				if (element.type === "image" && mediaAsset.type === "image") {
+					const meta = transitionMeta.get(element.id);
 					nodes.push(
 						new ImageNode({
 							url: mediaAsset.url,
 							duration: element.duration,
-							timeOffset: element.startTime,
+							timeOffset:
+								element.startTime + (meta?.timeOffsetShiftTicks ?? 0),
 							trimStart: element.trimStart,
 							trimEnd: element.trimEnd,
 							transform: buildTransformFromParams({ params: element.params }),
@@ -99,6 +117,7 @@ function buildTrackNodes({
 							blendMode: readBlendModeFromParams({ params: element.params }),
 							effects: element.effects ?? [],
 							masks: element.masks ?? [],
+							transition: meta?.transition,
 							...(isPreview && {
 								maxSourceSize: PREVIEW_MAX_IMAGE_SIZE,
 							}),
