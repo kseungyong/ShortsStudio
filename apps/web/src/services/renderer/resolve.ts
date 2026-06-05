@@ -20,6 +20,7 @@ import {
 import { resolveColorAtTime, resolveOpacityAtTime } from "@/animation/values";
 import { resolveTransformAtTime } from "@/rendering/animation-values";
 import { videoCache } from "@/services/video-cache/service";
+import { applyTransitionOpacity } from "./transition-opacity";
 import type { CanvasRenderer } from "./canvas-renderer";
 import type { AnyBaseNode } from "./nodes/base-node";
 import {
@@ -154,10 +155,14 @@ function resolveVisualState({
 		animations: params.animations,
 		localTime,
 	});
-	const opacity = resolveOpacityAtTime({
-		baseOpacity: params.opacity,
-		animations: params.animations,
-		localTime,
+	const opacity = applyTransitionOpacity({
+		opacity: resolveOpacityAtTime({
+			baseOpacity: params.opacity,
+			animations: params.animations,
+			localTime,
+		}),
+		time: context.time,
+		transition: params.transition,
 	});
 	const containScale = Math.min(
 		context.renderer.width / sourceWidth,
