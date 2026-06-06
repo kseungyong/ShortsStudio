@@ -9,6 +9,7 @@ import type {
 	RetimeConfig,
 } from "@/timeline";
 import { calculateTotalDuration } from "@/timeline";
+import type { TTransitionSpec } from "@/transitions/types";
 import { TimelineDragSource } from "@/timeline/drag-source";
 import { findTrackInSceneTracks } from "@/timeline/track-element-update";
 import { lastFrameMediaTime, type MediaTime, ZERO_MEDIA_TIME } from "@/wasm";
@@ -149,6 +150,31 @@ export class TimelineManager {
 					elementId,
 					patch: {
 						retime,
+					},
+				},
+			],
+			pushHistory,
+		});
+	}
+
+	updateElementTransition({
+		trackId,
+		elementId,
+		transition,
+		pushHistory = true,
+	}: {
+		trackId: string;
+		elementId: string;
+		transition?: TTransitionSpec;
+		pushHistory?: boolean;
+	}): void {
+		this.updateElements({
+			updates: [
+				{
+					trackId,
+					elementId,
+					patch: {
+						transition,
 					},
 				},
 			],

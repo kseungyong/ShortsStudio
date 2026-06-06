@@ -21,11 +21,13 @@ import {
 	MusicNote03Icon,
 	MagicWand05Icon,
 	DashboardSpeed02Icon,
+	TransitionTopIcon,
 } from "@hugeicons/core-free-icons";
 import { ElementParamsTab } from "./components/element-params-tab";
 import { ClipEffectsTab, StandaloneEffectTab } from "@/effects/components/effects-tab";
 import { MasksTab } from "@/masks/components/masks-tab";
 import { SpeedTab } from "@/speed/components/speed-tab";
+import { TransitionTab } from "@/transitions/components/transition-tab";
 import { GraphicTab } from "@/graphics/components/graphic-tab";
 import { OcShapesIcon } from "@/components/icons";
 
@@ -148,6 +150,21 @@ function buildSpeedTab({
 	};
 }
 
+function buildTransitionTab({
+	element,
+}: {
+	element: VideoElement | ImageElement;
+}): PropertiesTabDef {
+	return {
+		id: "transition",
+		label: "Transition",
+		icon: <HugeiconsIcon icon={TransitionTopIcon} size={16} />,
+		content: ({ trackId }) => (
+			<TransitionTab element={element} trackId={trackId} />
+		),
+	};
+}
+
 function buildMasksTab({
 	element,
 }: {
@@ -252,6 +269,7 @@ function getVideoConfig({
 			buildBlendingTab({ element }),
 			buildMasksTab({ element }),
 			buildClipEffectsTab({ element }),
+			buildTransitionTab({ element }),
 		],
 	};
 }
@@ -268,6 +286,7 @@ function getImageConfig({
 			buildBlendingTab({ element }),
 			buildMasksTab({ element }),
 			buildClipEffectsTab({ element }),
+			buildTransitionTab({ element }),
 		],
 	};
 }
